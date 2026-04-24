@@ -7,13 +7,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { CalendarX, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
   const { data: events, isLoading: eventsLoading, error } = useEvents();
   const { profile, isLoading: authLoading } = useAuthStore();
+  const queryClient = useQueryClient();
   const isAdmin = profile?.role === "admin";
-
   const isLoading = authLoading || eventsLoading;
+
+  // Refetch events every time page is visited
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["events"] });
+  }, [queryClient]);
 
   const upcomingEvents = events?.filter(
     (e) => new Date(e.event_date) >= new Date()
