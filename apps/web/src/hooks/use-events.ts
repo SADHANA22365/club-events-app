@@ -37,10 +37,10 @@ export function useEvent(id: string) {
 export function useCreateEvent() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ 
-      values, 
-      userId 
-    }: { 
+    mutationFn: async ({
+      values,
+      userId,
+    }: {
       values: Omit<Event, "id" | "created_at" | "updated_at" | "created_by">;
       userId: string;
     }) => {
@@ -48,10 +48,9 @@ export function useCreateEvent() {
       const { data, error } = await supabase
         .from("events")
         .insert({ ...values, created_by: userId })
-        .select()
-        .single();
+        .select();
       if (error) throw error;
-      return data;
+      return data?.[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
@@ -68,14 +67,13 @@ export function useUpdateEvent() {
         .from("events")
         .update({ ...values, updated_at: new Date().toISOString() })
         .eq("id", id)
-        .select()
-        .single();
+        .select();
       if (error) throw error;
-      return data;
+      return data?.[0];
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
-      queryClient.invalidateQueries({ queryKey: ["events", data.id] });
+      queryClient.invalidateQueries({ queryKey: ["events", data?.id] });
     },
   });
 }
@@ -85,7 +83,10 @@ export function useDeleteEvent() {
   return useMutation({
     mutationFn: async (id: string) => {
       const supabase = createClient();
-      const { error } = await supabase.from("events").delete().eq("id", id);
+      const { error } = await supabase
+        .from("events")
+        .delete()
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
