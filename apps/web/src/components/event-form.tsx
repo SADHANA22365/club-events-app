@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuthStore } from "@/store/auth-store";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
@@ -36,6 +37,7 @@ type EventFormProps = {
 
 export function EventForm({ event }: EventFormProps) {
   const router = useRouter();
+  const { user } = useAuthStore(); // ✅ moved to top level
   const createEvent = useCreateEvent();
   const updateEvent = useUpdateEvent();
   const isEditing = !!event;
@@ -83,7 +85,10 @@ export function EventForm({ event }: EventFormProps) {
         await updateEvent.mutateAsync({ id: event.id, ...payload });
         toast.success("Event updated!");
       } else {
-        await createEvent.mutateAsync(payload);
+        await createEvent.mutateAsync({
+          values: payload,
+          userId: user?.id ?? "",
+        });
         toast.success("Event created!");
       }
       router.push("/dashboard");

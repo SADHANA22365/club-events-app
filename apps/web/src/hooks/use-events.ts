@@ -37,12 +37,17 @@ export function useEvent(id: string) {
 export function useCreateEvent() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (values: Omit<Event, "id" | "created_at" | "updated_at" | "created_by">) => {
+    mutationFn: async ({ 
+      values, 
+      userId 
+    }: { 
+      values: Omit<Event, "id" | "created_at" | "updated_at" | "created_by">;
+      userId: string;
+    }) => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("events")
-        .insert({ ...values, created_by: user?.id })
+        .insert({ ...values, created_by: userId })
         .select()
         .single();
       if (error) throw error;
